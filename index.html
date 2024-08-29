@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngram Results</title>
+</head>
+<body>
+    <h1>Ngram Search</h1>
+    <label for="corpus">Corpus:</label>
+    <select id="corpus">
+        <option value="eng">English</option>
+        <option value="ger">German</option>
+        <option value="rus">Russian</option>
+    </select><br><br>
+    
+    <label for="query">Query:</label>
+    <input type="text" id="query"><br><br>
+    
+    <button onclick="fetchData()">Search</button>
+    
+    <h2>Results</h2>
+    <div id="results"></div>
+
+    <script>
+        function fetchData() {
+            const corpus = document.getElementById('corpus').value;
+            const query = document.getElementById('query').value;
+            
+            fetch(`/get_data?corpus=${corpus}&query=${query}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('results').innerHTML = `<p>${data.error}</p>`;
+                        return;
+                    }
+                    
+                    let html = `<h3>Query: ${query}</h3>`;
+                    html += '<ul>';
+                    
+                    data.ngrams.forEach(ngram => {
+                        html += `<li>Ngram: ${ngram.tokens}, Absolute Matches: ${ngram.absTotalMatchCount}, Relative Matches: ${ngram.relTotalMatchCount.toFixed(10)}</li>`;
+                    });
+                    
+                    html += '</ul>';
+                    document.getElementById('results').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('results').innerHTML = `<p>Error fetching data: ${error}</p>`;
+                });
+        }
+    </script>
+</body>
+</html>
